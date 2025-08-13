@@ -11,6 +11,7 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@clerk/express": "^1.7.18",
     "@sentry/node": "^10.3.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.7.0",

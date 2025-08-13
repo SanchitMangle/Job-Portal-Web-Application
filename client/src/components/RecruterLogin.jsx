@@ -2,9 +2,13 @@ import React, { useContext, useEffect } from 'react'
 import { useState } from 'react'
 import { assets } from '../assets/assets'
 import { AppContext } from '../context/AppContext'
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
 const RecruterLogin = () => {
 
+    const navigate = useNavigate()
     const [state, setState] = useState('Login')
     const [name, setName] = useState('')
     const [password, setPassword] = useState('')
@@ -13,21 +17,64 @@ const RecruterLogin = () => {
     const [image, setImage] = useState(false)
     const [isTextDataSubmitted, setIsTextDataSubmitted] = useState(false)
 
-    const {setShowRecruterLogin} = useContext(AppContext)
+    const { setShowRecruterLogin, backendUrl, setCompanyToken, setCompanyData } = useContext(AppContext)
 
     const onSubmitHander = async (e) => {
         e.preventDefault()
         if (state === 'Sing Up' && !isTextDataSubmitted) {
-            setIsTextDataSubmitted(true)
+           return setIsTextDataSubmitted(true)
+        }
+
+        try {
+
+            if (state === 'Login') {
+                const { data } = await axios.post(backendUrl + '/api/company/login', { email, password })
+                if (data.success) {
+                    // console.log(data);
+                    setCompanyData(data.company)
+                    setCompanyToken(data.token)
+                    localStorage.setItem('companyToken', data.token)
+                    setShowRecruterLogin(false)
+                    navigate('/dashboard')
+                }
+                else {
+                    toast.error(data.message)
+                }
+            }
+            else {
+                const formData = new FormData()
+                formData.append('name', name)
+                formData.append('email', email)
+                formData.append('password', password)
+                formData.append('image', image)
+
+                const { data } = await axios.post(backendUrl + '/api/company/register', formData)
+                if (data.success) {
+                    // console.log(data);
+                    setCompanyData(data.company)
+                    setCompanyToken(data.token)
+                    localStorage.setItem('companyToken', data.token)
+                    setShowRecruterLogin(false)
+                    navigate('/dashboard')
+                }
+                else{
+                    toast.error(data.message)
+                }
+
+            }
+
+        } catch (error) {
+           console.log(error);
+           toast.error(error.message)
         }
     }
 
     // To stop scroll 
 
-    useEffect(()=>{
+    useEffect(() => {
         document.body.style.overflow = 'hidden'
-        return ()=>{
-             document.body.style.overflow = 'unset'
+        return () => {
+            document.body.style.overflow = 'unset'
         }
     })
 
